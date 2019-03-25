@@ -211,7 +211,7 @@ PP.plot2 <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 
   annotate("text", x = c(-39.5,-39.5,-39.5), y = c(1, 0.7, 0.4), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
-  ggsave("Fig2A.png", device = "png", width = 4, height = 4)
+  ggsave("Fig2A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```
 
 `r fig_nums("Fig_S1.2")`
@@ -258,7 +258,7 @@ Fig2ABC <- PP.plot +
 
 #Fig2ABC
   
-#ggsave("Fig2ABC.png", device = "png")
+#ggsave("Fig2ABC.png", path = "../figures/", device = "png")
 ```
 
 
@@ -424,7 +424,7 @@ fig2A <- TC +
   geom_smooth(data = TCchla[(TCchla$week == '8'),], aes(x = -I(invTavg-mean(invTavg)), y = TCvals8, ymin = 0), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray20', size = 0.5) + 
   geom_smooth(data = TCchla[(TCchla$week == '9'),], aes(x = -I(invTavg-mean(invTavg)), y = TCvals9, ymin = 0), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'black', size = 0.5)
 
-#ggsave("Fig2B.png", device = "png", width = 4, height = 3)
+#ggsave("Fig2B.png", device = "png",path = "../figures/", width = 4, height = 3)
 ```
 
 &nbsp;
@@ -583,7 +583,7 @@ NEP.plot2 <- ggplot(data = data1, aes(x = -invTi, y = log(NPP2), ymin = -7, ymax
   annotate("text", x = c(-39,-39,-39), y = c(-6.5, -6.7, -6.9), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
-  ggsave("Fig5A.png", device = "png", width = 4, height = 4)
+  ggsave("Fig5A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```       
 
 ## 3.5 NEP temperature dependence within and across systems, Figure 5
@@ -638,7 +638,7 @@ Fig2DEF <-
 
 ```{r, fig.width=6, fig.height=3}
 #Fig2DEF
-#ggsave("Fig2A.png", device = "png", width = 7, height = 3)
+#ggsave("Fig2A.png", device = "png", path = "../figures/", width = 7, height = 3)
 ```
 
 
@@ -764,7 +764,7 @@ ER.plot2 <- ggplot(data = data2, aes(x = -invTi, y = log(ER2), ymin = -7, ymax =
   labs(title = "B. Net Ecosystem Respiration (ER)", size = 3) +
   annotate("text", x = c(-39,-39,-39), y = c(-6.5, -6.7, -6.9), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4)
 
-  ggsave("Fig5B.tiff", device = "tiff", width = 4, height = 4)
+  ggsave("Fig5B.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```       
 
 
