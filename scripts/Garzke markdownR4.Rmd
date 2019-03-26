@@ -191,33 +191,38 @@ kable(slopesPB[,1:3], digits = 2)
 
 ## 1.4 Biomass (Mb) temperature dependence across systems, Fig 2A
 ```{r PP.plot2}
+#tiff("Fig2A.tiff", units="in", width=3, height=3, res=600)
+
 PP.plot2 <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 3)) + #, xmin = -40.2, xmax = -38.2
   theme_bw() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(),  
-        legend.text = element_text(size = 6), 
-        legend.title = element_text(size = 7), 
+        legend.text = element_text(size = 5), 
+        legend.title = element_text(size = 5), 
         legend.key = element_rect(fill = NA), 
-        axis.text = element_text(size = 14),
+        axis.text = element_text(size = 10),
         #strip.text.y = element_blank(),
-        strip.background = element_rect(colour="white", fill="white")) +
-   geom_line(data = subset(data, trophic.level == "P"), aes(x = -invTT, y = as.vector(PBvalsP)), color = 'black', size = 1.5) +
- geom_line(data = subset(data, trophic.level == "PZ"), aes(x = -invTT, y = PBvalsPZ), color = 'black', linetype = 3, size = 1.5) +
- geom_line(data = subset(data, trophic.level == "PZN"), aes(x = -invTT, y = PBvalsPZN), color = 'black', linetype = 2, size = 1.5) +
+        strip.background = element_rect(colour="white", fill="white"),
+        plot.title = element_text(hjust = -1)) +
+  ggtitle("A. Phytoplankton Biomass [Chla]") +
+   geom_line(data = subset(data, trophic.level == "P"), aes(x = -invTT, y = as.vector(PBvalsP)), color = 'black', size = 1) +
+ geom_line(data = subset(data, trophic.level == "PZ"), aes(x = -invTT, y = PBvalsPZ), color = 'black', linetype = 3, size = 1) +
+ geom_line(data = subset(data, trophic.level == "PZN"), aes(x = -invTT, y = PBvalsPZN), color = 'black', linetype = 2, size = 1) +
   scale_linetype_identity() +
   ylab("ln(ug Chl a / L)") +
-  labs(title = "A. Phytoplankton Biomass [Chla]", size = 3) +
-  annotate("text", x = c(-39.5,-39.5,-39.5), y = c(1, 0.7, 0.4), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
+  annotate("text", x = c(-39.75,-39.75,-39.75), y = c(.9, 0.6, 0.3), label = c("solid = Algae", "dotted = Algae + Grazer", "dashed = AG + Predator"), hjust = 0, size = 3) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
-  ggsave("Fig2A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
+ggsave("Fig2A.eps", device = "eps", path = "../figures/", width = 3, height = 3, dpi = 300, units = "in")
+PP.plot2
+#dev.off()
 ```
 
 `r fig_nums("Fig_S1.2")`
 
 ```{r Figure 2A main text, Fig_S1.2, fig.width=4, fig.height=3, echo = FALSE}
-PP.plot2
+#PP.plot2
 ```
 
 
@@ -241,7 +246,7 @@ PP.plot <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = -4, ymax = 
   scale_alpha("Tankn", guide = "none") +
   ylab("ln(ug Chl a / L)") +
   labs(title = "A. Phytoplankton \n Abundance", size = 3) +
-  annotate("text", label = c("i. A", "ii. AG", "iii. AGP"), x = -38.45, y = 2.95, size = 3) +
+  annotate("text", label = c("i. A", "ii. AG", "iii. AGP"), x = -38.55, y = 2.95, size = 3) +
   #annotate("text", label = c("Ea = 1.30 (0.85, 1.76)", "Ea = 3.15 (2.76, 3.54)", "Ea = 1.65 (1.19, 2.10)"), x = 39.3, y = -3.95, size = 3) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
