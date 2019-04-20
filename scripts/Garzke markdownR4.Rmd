@@ -28,6 +28,7 @@ library(zoo)
 library(knitr)
 library(gridExtra)
 library(captioner)
+library(cowplot)
 ```
 
 ```{r load data}
@@ -74,7 +75,7 @@ Code in Markdown file, printed here are supplemental results. I could imagine a 
 
 `r fig_nums("Fig_S2.1")`
 
-```{r specify PP data, Fig_S2.1,fig.width=3, fig.height=3}
+```{r specify PP data, echo = FALSE, Fig_S2.1,fig.width=3, fig.height=3}
 data <- alldata1
 hist(data$chla)
 hist(log(data$chla))
@@ -190,8 +191,8 @@ kable(slopesPB[,1:3], digits = 2)
 ```
 
 ## 1.4 Biomass (Mb) temperature dependence across systems, Fig 2A
-```{r PP.plot2}
-PP.plot2 <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 3)) + #, xmin = -40.2, xmax = -38.2
+```{r Fig2A, width = 4, height = 3}
+Fig2A <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 3)) + #, xmin = -40.2, xmax = -38.2
   theme_bw() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank(), 
@@ -207,18 +208,14 @@ PP.plot2 <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 
  geom_line(data = subset(data, trophic.level == "PZN"), aes(x = -invTT, y = PBvalsPZN), color = 'black', linetype = 2, size = 1.5) +
   scale_linetype_identity() +
   ylab("ln(ug Chl a / L)") +
-  labs(title = "A. Phytoplankton Biomass [Chla]", size = 3) +
+  labs(title = "Phytoplankton Biomass [Chla]", size = 3) +
   annotate("text", x = c(-39.5,-39.5,-39.5), y = c(1, 0.7, 0.4), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
   ggsave("Fig2A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```
 
-`r fig_nums("Fig_S1.2")`
 
-```{r Figure 2A main text, Fig_S1.2, fig.width=4, fig.height=3, echo = FALSE}
-PP.plot2
-```
 
 
 ## 1.5 Biomass (Mb) within and among systems
@@ -395,7 +392,7 @@ TC.func9 <- function(x) {IPw9 + Slw9*x}
 TCvals9 <- TC.func9(-(TCchla[(TCchla$week=="9"),]$invTavg-mean(TCchla$invTavg)))
 ```
 
-```{r Figure 2B main text, fig.width=4, fig.height=3}
+```{r Figure 2B, fig.width=4, fig.height=3}
 # this is the main text figure, so below, save it as figure 3.`r fig_nums("Fig_S2.03")`
 TC <- ggplot(data = TCchla, aes(x = -I(invTavg-mean(invTavg)), y = log(TC), ymin = 0, group = week, shape = as.factor(week), alpha = week)) +
   theme_bw() +
@@ -409,12 +406,12 @@ TC <- ggplot(data = TCchla, aes(x = -I(invTavg-mean(invTavg)), y = log(TC), ymin
   geom_point() +
   scale_alpha("week", guide = "none") +
   scale_shape_manual(guide = guide_legend(title = "Week"), values = c(1,2,22,23,8,15,16,17)) +
-  labs(title = "B. Trophic Cascade Strength", size = 3) +
+  labs(title = "Trophic Cascade Strength", size = 3) +
   ylab(bquote(~"ln(Chl a"[+AGP]~")/(Chl a"[-AG]~")")) +
   #scale_x_continuous("Temperature [(1/kTi) - (1/kTi)]", sec.axis = sec_axis(~((1/(k*+.))-273), name = xlab))
   xlab("Temperature [(1/kTi) - (1/kTi)]") 
 
-fig2A <- TC + 
+Fig2B <- TC + 
   geom_smooth(data = TCchla[(TCchla$week == '2'),], aes(x = -I(invTavg-mean(invTavg)), y = TCvals2, ymin = 0), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray80', size = 0.5) + 
   geom_smooth(data = TCchla[(TCchla$week == '3'),], aes(x = -I(invTavg-mean(invTavg)), y = TCvals3, ymin = 0), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray70', size = 0.5) + 
   geom_smooth(data = TCchla[(TCchla$week == '4'),], aes(x = -I(invTavg-mean(invTavg)), y = TCvals4, ymin = 0), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray60', size = 0.5) + 
@@ -446,6 +443,13 @@ kable(TCres, digits=2, col.names = c('Int','T~wj~','Wk','T~wj~*Wk','df','logLik'
 #intervals(TCFulls)
 ```
 
+`r fig_nums("Fig_S1.2")`
+
+```{r Figure 2 main text, Fig_S1.2, fig.width=4, fig.height=3, echo = FALSE}
+#Fig2MT <- grid.arrange(PP.plot2, fig2B, nrow = 1)
+Fig2MT <- plot_grid(Fig2A, Fig2B, labels = c("A", "B"), align = "h")
+ggsave("Fig2.tiff", plot = Fig2MT, device = "tiff", path = "../figures/", width = 8, height = 4)
+```
 
 # 3. RESULTS: Net ecosystem oxygen production (NEP)
 ```{r data, fig.width=3, fig.height=3, echo = FALSE}
@@ -563,8 +567,8 @@ kable(slopesN[,1:3], digits = 2)
 ```
 
 ## 3.4 NEP temperature dependence across systems, Figure 3A
-```{r NEP.plot2}
-NEP.plot2 <- ggplot(data = data1, aes(x = -invTi, y = log(NPP2), ymin = -7, ymax = -5)) + #, xmin = -40.2, xmax = -38.2
+```{r Fig5A}
+Fig5A <- ggplot(data = data1, aes(x = -invTi, y = log(NPP2), ymin = -7, ymax = -5)) + #, xmin = -40.2, xmax = -38.2
   theme_bw() +
   theme(legend.position = "none",
         panel.grid.minor = element_blank(), 
@@ -579,11 +583,11 @@ NEP.plot2 <- ggplot(data = data1, aes(x = -invTi, y = log(NPP2), ymin = -7, ymax
  geom_line(data = subset(data1, trophic.level == "PZ"), aes(x = -invTT, y = NvalsPZ), color = 'black', linetype = 3, size = 1.5) +
  geom_line(data = subset(data1, trophic.level == "PZN"), aes(x = -invTT, y = NvalsPZN), color = 'black', linetype = 2, size = 1.5) +
   ylab("ln(umol O2 / L / hr)") +
-  labs(title = "A. Net Ecosystem Production (NEP)", size = 3) +
+  labs(title = "Net Ecosystem Production (NEP)", size = 3) +
   annotate("text", x = c(-39,-39,-39), y = c(-6.5, -6.7, -6.9), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
-  ggsave("Fig5A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
+  #ggsave("Fig5A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```       
 
 ## 3.5 NEP temperature dependence within and across systems, Figure 5
@@ -745,8 +749,8 @@ kable(slopesER[,1:3])
 ```
 
 ## 4.4 ER temperature dependence across systems
-```{r ER.plot2}
-ER.plot2 <- ggplot(data = data2, aes(x = -invTi, y = log(ER2), ymin = -7, ymax = -5)) + #, xmin = -40.2, xmax = -38.2
+```{r Fig5B}
+Fig5B <- ggplot(data = data2, aes(x = -invTi, y = log(ER2), ymin = -7, ymax = -5)) + #, xmin = -40.2, xmax = -38.2
   theme_bw() +
   theme(legend.position = c(-39, -6.5),
         panel.grid.minor = element_blank(), 
@@ -761,10 +765,10 @@ ER.plot2 <- ggplot(data = data2, aes(x = -invTi, y = log(ER2), ymin = -7, ymax =
   #scale_linetype_manual(values = c(1,2,3), aesthetics = c("P", "PZ", "PZN")) +
     scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab)) +
   ylab("ln(umol O2 / L / hr)") +
-  labs(title = "B. Net Ecosystem Respiration (ER)", size = 3) +
+  labs(title = "Net Ecosystem Respiration (ER)", size = 3) +
   annotate("text", x = c(-39,-39,-39), y = c(-6.5, -6.7, -6.9), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4)
 
-  ggsave("Fig5B.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
+  #ggsave("Fig5B.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
 ```       
 
 
@@ -805,9 +809,16 @@ ER.plot +
 #Fig2GHI
 ```
 
+# Figure 5
+```{r Figure 5 main text, fig.width=4, fig.height=3, echo = FALSE}
+#Fig2MT <- grid.arrange(PP.plot2, fig2B, nrow = 1)
+Fig5MT <- plot_grid(Fig5A, Fig5B, labels = c("A", "B"), align = "h")
+ggsave("Fig5.tiff", plot = Fig5MT, device = "tiff", path = "../figures/", width = 8, height = 4)
+```
+
 # 5. COMBINED RESULTS: 
 
-## 5.1 coefficient plot
+## 5.1 coefficient plot (Figure 3)
 ```{r}
 ###Figure 2a, slopes
 slopes <- as.data.frame(rbind(slopesPB, slopesER, slopesN))
@@ -879,7 +890,7 @@ mutate(., sum1 = AG.NEP + AG.ER)
 #summary((data1[(data1$NPPER < 20),]$NPPER))
 ```
 
-## 5.2 Figure 5 (Full)
+## 5.2 Figure 6 (Full)
 ```{r, fig.width=7, fig.height=7}
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -918,8 +929,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 multiplot(Fig2ABC, Fig2DEF, Fig2GHI, cols = 3)
 ```
 
-```{r}
-png('Fig6.png', width = 7, height = 7, units = 'in', res = 300)
+```{r Figure 6}
+tiff(file = "Fig6.tiff", width = 19, height = 19, units = 'cm', res = 300)
 multiplot(Fig2ABC, Fig2DEF, Fig2GHI, cols = 3)
 dev.off()
 ```

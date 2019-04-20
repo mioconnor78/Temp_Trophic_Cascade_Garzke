@@ -26,6 +26,7 @@ library(gridExtra)
 #library(glmmADMB)
 #library(sandwich)
 library(tinytex)
+library(cowplot)
 ```
 
 ```{r load data}
@@ -86,12 +87,14 @@ data.N$Dt <- 10*(data.N$abundance.Daphnia)
 data.N$Ct <- 10*(data.N$abundance.copepods)
 data.N$week <- as.factor(data.N$week)
 data.N$Tank <- as.factor(data.N$Tank)
+
 ```
 
 `r fig_nums("Fig_S3.1")`
 
 ```{r Fig_S3.1: Histogram ZP Abundance, echo=FALSE, fig.width=3, fig.height=3}
 hist(data.N$Nt, main = " ")
+hist(log(data.N$Nt), main = " ")
 ```
 
 ```{r Testing ZP model options, echo = FALSE}
@@ -109,8 +112,8 @@ m2 <- lmer(Nt ~ invTT + trophic.level + (1|Tank), data = data.N)
 `r fig_nums("Fig_S3.2")`
 
 ```{r resid_plot_lm, echo=FALSE, fig.width=3,fig.height=3}
-qqnorm(resid(m2))
-qqline(resid(m2)) ## ok, shapiro test + this plot show that the linear model is not right.
+qqnorm(resid(m1))
+qqline(resid(m1)) ## ok, shapiro test + this plot show that the linear model is not right.
 ```
 
 ```{r poison errors, echo = FALSE}
@@ -137,20 +140,73 @@ res <- model.sel(nbinommod1, nbinommod1a, nbinommod1b, nbinommod1c)
 ```
 
 
+#april 2019 b
+```{r log density, echo = FALSE}
+library(nlme)
+m1 <- lme(log(Nt+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
+qqnorm(resid(m1))
+# proceed with alternate fixed effects models
+m1a <- lme(log(Nt+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
+m1b <- lme(log(Nt+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
+m1c <- lme(log(Nt+1) ~ 1, random = ~ 1|Tank, data = data.N)
+m1d <- lme(log(Nt+1) ~ 1 + I(invTT - mean(invTT)) + trophic.level, random = ~ 1|Tank, data = data.N)
+
+res <- model.sel(m1, m1a, m1b, m1c, m1d)
+#anova(nbinommod1, nbinommod1b) # so proceed wtih nbionmmod1b
+``` 
+
 `r table_nums("Table_1")`
 ```{r Table_S1}
 kable(res, digits=2, col.names = c('Int','T~wj~','Z~j~','df', 'logLik', 'AICc', 'd', 'w'))
 ```
 
 ```{r summarize best model}
-#summary(nbinommod1b)
-m1 <- nbinommod1b
-r.est <- cbind(Estimate = coef(m1), se = stdEr(m1), 
-            "Pr(>|z|)" = 2 * pnorm(abs(coef(m1)/stdEr(m1)), lower.tail=FALSE),
-            LL = coef(m1) - 1.96 * stdEr(m1),
-            UL = coef(m1) + 1.96 * stdEr(m1))
+#summary(nbinommod1b), stdEr is standard error
+m.avgN <- model.avg(m1, m1b, m1c, m1a, m1d)
+confint(m.avgN) -> ints
+coef(m.avgN) -> coefs
+
+NInt.ag <- (fixef(m1)[1])
+NInt.agp <- (fixef(m1)[1] + fixef(m1)[3])
+
+Nsl.ag <- fixef(m1)[2]
+Nsl.agp <- fixef(m1)[2] + fixef(m1)[4]
 ```
 
+#april 2019
+```{r Fig 4A plotting total zooplankton results, width = 4, height = 4}
+### use model coefficients to estimate lines for later plotting; transformation in the negative binomial is log, so exponentiating the estimates reverses that. BUT, in this case we are interested in the response of the log (to get an Ea value) so I will not back transform, but instead plot on logged axes.
+
+N.PZN <- function(x) { NInt.agp + Nsl.agp*(x - mean(x))}
+NvalsPZN <- N.PZN(data.N[(data.N$trophic.level=="PZN"),]$invTT - mean(data.N$invTT))
+
+N.PZ <- function(x) { NInt.ag + Nsl.ag*(x - mean(x)) }
+NvalsPZ <- N.PZ(data.N[(data.N$trophic.level=="PZ"),]$invTT - mean(data.N$invTT))
+
+data.N$week <- as.numeric(as.character(data.N$week))
+# ymin = 0, 
+
+N.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(Nt+1), xmin = -40, xmax = -38.5, group = week, shape = as.factor(trophic.level), alpha = week)) +
+  theme_bw() +
+  geom_point(aes(group = as.character(week))) +
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major = element_blank(),  
+        legend.position = c(.9,.7),
+        #legend.justification = c(.5,0),
+        strip.text.y = element_blank(),
+        strip.background = element_rect(colour="white", fill="white")) +
+  scale_alpha("Week") +
+  scale_shape_manual(guide = "none", values = c(16,17)) +
+  ylab("Zooplankton abundance ln(ind/10L)") + 
+  scale_x_continuous("Temperature (1/kTi)", sec.axis =sec_axis(~((1/(k*-.))-273), name = xlab))
+
+Fig4A <- N.plot2 +
+  geom_smooth(data = subset(data.N, trophic.level == "PZN"), aes(x = -invTT, y = N.PZN(invTT)), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray', size = 1.5, lty = 2) +
+ geom_smooth(data = subset(data.N, trophic.level == "PZ"), aes(x = -invTT, y = N.PZ(invTT)), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 1, size = 1.5, lty = 1)
+
+
+#ggsave("Fig4.png", width = 4, height = 4)
+```
 
 ```{r plotting total zooplankton results}
 ### use model coefficients to estimate lines for later plotting; transformation in the negative binomial is log, so exponentiating the estimates reverses that. BUT, in this case we are interested in the response of the log (to get an Ea value) so I will not back transform, but instead plot on logged axes.
@@ -220,6 +276,18 @@ poismod.Dd <- glmmadmb(abundance.Daphnia ~ 1 + (1|Tank), family = "poisson", dat
 resD <- model.sel(poismod.Da, poismod.Db, poismod.Dc, poismod.Dd)
 ```
 
+```{r log Daphnia density, echo = FALSE}
+m1D <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
+qqnorm(resid(m1D))
+# proceed with alternate fixed effects models
+m1Da <- lme(log(abundance.Daphnia+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
+m1Db <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
+m1Dc <- lme(log(abundance.Daphnia+1) ~ 1, random = ~ 1|Tank, data = data.N)
+m1Dd <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)) + trophic.level, random = ~ 1|Tank, data = data.N)
+
+resD <- model.sel(m1D, m1Da, m1Db, m1Dc, m1Dd)
+```
+
 `r table_nums("Table_S3.2")`
 ```{r Daphnia table}
 kable(resD, digits=2, col.names = c('Int','T~wj~','Z~j~','T~wj~*Z~j~','df', 'logLik', 'AICc', 'd', 'w'))
@@ -244,33 +312,36 @@ kable(D.est, digits=2)
 
 ```{r Daphnia predicted values}
 ### use model coefficients to estimate lines for later plotting
-D.PZ <- function(x) { exp(fixef(m1D)[1] + fixef(m1D)[2]*x) } # for trophic level 3
-D.PZN <- function(x) { exp(fixef(m1D)[1] + fixef(m1D)[3] + fixef(m1D)[2]*x) } # for trophic level 3
+D.PZ <- function(x) { (fixef(m1Da)[1]) } # for trophic level 3
+D.PZN <- function(x) { (fixef(m1Da)[1] + fixef(m1Da)[2]) } # for trophic level 3
 ```
 
-```{r Daphnia plots}
-D.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = abundance.Daphnia, xmin = -40, xmax = -38.5, group = week, shape = as.factor(trophic.level), alpha = week)) +
+```{r Fig 4B Daphnia plots, width = 4, height = 4}
+D.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(abundance.Daphnia+1), xmin = -40, xmax = -38.5, group = week, shape = as.factor(trophic.level), alpha = week)) +
   theme_bw() +
-  geom_point(aes(group = as.character(week))) +
+  theme(legend.position = "none")+
+  geom_point(aes(group = as.character(week)), guide = "none") +
   theme(panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(),  
-        legend.text = element_text(size = 6), 
-        legend.title = element_text(size = 7), 
-        legend.key = element_rect(fill = NA), 
+        #legend.text = element_text(size = 6), 
+        #legend.title = element_text(size = 7), 
+        #legend.key = element_rect(fill = NA), 
         strip.text.y = element_blank(),
         strip.background = element_rect(colour="white", fill="white")) +
-  #scale_alpha("week", guide = "none") +
-  scale_shape_manual(guide = guide_legend(title = "Trophic Treatment"), values = c(1,2,22,23,8,15,16,17)) +
-  ylab("Daphnia density (ind/L)") + 
+  scale_alpha("Week") +
+  scale_shape_manual(guide = "none", values = c(16,17)) +
+  ylab("Daphnia density ln(ind/10L)") + 
   scale_x_continuous("Temperature (1/kTi)", sec.axis =sec_axis(~((1/(k*-.))-273), name = xlab))
 
-D.plot3 <- D.plot2 +
+#, values = c(1,2,22,23,8,15,16,17)
+
+Fig4B <- D.plot2 +
   geom_smooth(data = subset(data.N, trophic.level == "PZ"), aes(x = -invTT, y = D.PZ(invTT)), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'black', size = 1.5) +
   geom_smooth(data = subset(data.N, trophic.level == "PZN"), aes(x = -invTT, y = D.PZN(invTT)), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'gray', size = 1.5, lty = 1)
 
 #D.plot2 + geom_line(data=transform(data.N, abundance.Daphnia=(predict(poismod.Db))))
 
-ggsave("Fig4a.png", width = 4, height = 4)
+#ggsave("Fig4a.png", width = 4, height = 4)
 ```
 
 
@@ -303,6 +374,18 @@ resC <- model.sel(poismod.Ca, poismod.Cb, poismod.Cc, poismod.Cd)
 #summary(poismod.Cc)
 ```
 
+```{r log Copepod density, echo = FALSE}
+m1C <- lme(log(Ct+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
+qqnorm(resid(m1C))
+# proceed with alternate fixed effects models
+m1Ca <- lme(log(Ct+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
+m1Cb <- lme(log(Ct+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
+m1Cc <- lme(log(Ct+1) ~ 1, random = ~ 1|Tank, data = data.N)
+m1Cd <- lme(log(Ct+1) ~ 1 + I(invTT - mean(invTT)) + trophic.level, random = ~ 1|Tank, data = data.N)
+
+resC <- model.sel(m1C, m1Ca, m1Cb, m1Cc, m1Cd)
+```
+
 `r table_nums("Table_S3.4")`
 
 ```{r Copepod abundance results}
@@ -326,37 +409,47 @@ kable(C.est, digits = 2)
 
 ```{r Copepod plots, width = 4, height = 4}
 ### use model coefficients to estimate lines for later plotting
-C.PZ <- function(x) { exp(fixef(poismod.Cc)[1] + fixef(poismod.Cc)[2]*x) } # for trophic level 3
+C.PZ <- function(x) { (fixef(m1Cb)[1] + fixef(m1Cb)[2]*x) } # for trophic level 3
+Cvals <- C.PZ(data.N$invTT - mean(data.N$invTT))
 
 #data.N$Chat <- predict(poismod.Cc)
 
-C.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = abundance.copepods, xmin = -40, xmax = -38.5, group = week, shape = as.factor(trophic.level), alpha = week)) +
+C.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(Ct + 1), xmin = -40, xmax = -38.5, group = week, shape = as.factor(trophic.level), alpha = week)) +
   theme_bw() +
+  theme(legend.position = "none") +
   geom_point(aes(group = as.character(week))) +
   theme(panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(),  
-        legend.text = element_text(size = 6), 
-        legend.title = element_text(size = 7), 
-        legend.key = element_rect(fill = NA), 
+        #legend.text = element_text(size = 6), 
+        #legend.title = element_text(size = 7), 
+        #legend.key = element_rect(fill = NA), 
         strip.text.y = element_blank(),
         strip.background = element_rect(colour="white", fill="white")) +
-  #scale_alpha("week", guide = "none") +
-  scale_shape_manual(guide = guide_legend(title = "Trophic Treatment"), values = c(1,2,22,23,8,15,16,17)) +
-  ylab("Copepod density (ind/L)") + 
+  scale_alpha("week") +
+  scale_shape_manual(guide = "none", values = c(16,17)) +
+  ylab("Copepod density ln(ind/10L)") + 
   scale_x_continuous("Temperature (1/kTi)", sec.axis =sec_axis(~((1/(k*-.))-273), name = xlab))
 
-C.plot3 <- C.plot2 +
-  geom_smooth(data = data.N, aes(x = -invTT, y = C.PZ(invTT)), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'black', size = 1.5)
 
-ggsave("Fig4b.png", width = 4, height = 4)
+Fig4C <- C.plot2 +
+  geom_smooth(data = data.N, aes(x = -invTT, y = Cvals), method = "lm", se = FALSE, inherit.aes = FALSE, formula = y ~ x, color = 'black', size = 1.5)
+
+#ggsave("Fig4b.png", width = 4, height = 4)
 ```
 
 
-```{r copepod abundance figure}
-#`r fig_nums("Fig_S3.6")`
-C.plot3
-#ggsave("Dabundance.png", device = "png")
+
+```{r Figure 4 main text, fig.width=4, fig.height=12, echo = FALSE}
+
+tiff(file = "Fig4.tiff", width = 10, height = 30, units = "cm", res = 300, pointsize = 6)
+
+Fig4MT <- plot_grid(Fig4A, Fig4B, Fig4C, labels = c("A", "B", "C"), ncol = 1, align = "v")
+Fig4MT
+
+dev.off()
+#ggsave("Fig4.tiff", plot = Fig4MT, device = "tiff", path = "../figures/", width = 8, height = 4)
 ```
+
 
 ### Section S3.4: Zooplankton size analysis
 ```{r Size analysis}
