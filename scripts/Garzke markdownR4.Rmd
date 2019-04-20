@@ -200,22 +200,36 @@ Fig2A <- ggplot(data = data, aes(x = -invTi, y = log(chla), ymin = 0, ymax = 3))
         legend.text = element_text(size = 6), 
         legend.title = element_text(size = 7), 
         legend.key = element_rect(fill = NA), 
-        axis.text = element_text(size = 14),
+        axis.text = element_text(size = 10),
         #strip.text.y = element_blank(),
-        strip.background = element_rect(colour="white", fill="white")) +
-   geom_line(data = subset(data, trophic.level == "P"), aes(x = -invTT, y = as.vector(PBvalsP)), color = 'black', size = 1.5) +
- geom_line(data = subset(data, trophic.level == "PZ"), aes(x = -invTT, y = PBvalsPZ), color = 'black', linetype = 3, size = 1.5) +
- geom_line(data = subset(data, trophic.level == "PZN"), aes(x = -invTT, y = PBvalsPZN), color = 'black', linetype = 2, size = 1.5) +
+        strip.background = element_rect(colour="white", fill="white"),
+        plot.title = element_text(hjust = -1)) +
+  ggtitle("A. Phytoplankton Biomass [Chla]") +
+   geom_line(data = subset(data, trophic.level == "P"), aes(x = -invTT, y = as.vector(PBvalsP)), color = 'black', size = 1) +
+ geom_line(data = subset(data, trophic.level == "PZ"), aes(x = -invTT, y = PBvalsPZ), color = 'black', linetype = 3, size = 1) +
+ geom_line(data = subset(data, trophic.level == "PZN"), aes(x = -invTT, y = PBvalsPZN), color = 'black', linetype = 2, size = 1) +
   scale_linetype_identity() +
   ylab("ln(ug Chl a / L)") +
+<<<<<<< HEAD
   labs(title = "Phytoplankton Biomass [Chla]", size = 3) +
   annotate("text", x = c(-39.5,-39.5,-39.5), y = c(1, 0.7, 0.4), label = c("solid = A", "dotted = AG", "dashed = AGP"), size = 4) +
+=======
+  annotate("text", x = c(-39.75,-39.75,-39.75), y = c(.9, 0.6, 0.3), label = c("solid = Algae", "dotted = Algae + Grazer", "dashed = AG + Predator"), hjust = 0, size = 3) +
+>>>>>>> d6f172b2852ddcd18315f88a1cb22c02de9a3aca
   scale_x_continuous("Temperature (1/kTi)", sec.axis = sec_axis(~(-(1/(k*+.))-273), name = xlab))
 
-  ggsave("Fig2A.tiff", device = "tiff", path = "../figures/", width = 4, height = 4)
+ggsave("Fig2A.eps", device = "eps", path = "../figures/", width = 3, height = 3, dpi = 300, units = "in")
+PP.plot2
+#dev.off()
 ```
 
 
+<<<<<<< HEAD
+=======
+```{r Figure 2A main text, Fig_S1.2, fig.width=4, fig.height=3, echo = FALSE}
+#PP.plot2
+```
+>>>>>>> d6f172b2852ddcd18315f88a1cb22c02de9a3aca
 
 
 ## 1.5 Biomass (Mb) within and among systems
