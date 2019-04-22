@@ -67,9 +67,8 @@ fig_nums(name = "Fig_S3.1", caption = "Abundance of zooplankton (Number / 10L) o
 fig_nums(name = "Fig_S3.2", caption = "Residual plot for linear model of abundance with normally distributed errors", display = FALSE)
 fig_nums(name = "Fig_S3.3", caption = "Residual plot for linear model of abundance with log normally distributed errors", display = FALSE)
 fig_nums(name = "Fig_S3.4", caption = "Total Zooplankton abundance and modeled temperature dependence from negative binomial regression", display = FALSE)
-fig_nums(name = "Fig_S3.5", caption = "Abundance of Daphnia and Copepods (Number / 10L) over all tanks and weeks.", display = FALSE)
-fig_nums(name = "Fig_S3.6", caption = "Daphnia abundance with modeled temperature dependence; estimates and confidence intervals given in Table S3.3", display = FALSE)
-fig_nums(name = "Fig_S3.7", caption = "Copepod abundance with modeled temperature dependence", display = FALSE)
+fig_nums(name = "Fig_S3.5", caption = "Daphnia abundance with modeled temperature dependence; estimates and confidence intervals given in Table S3.3", display = FALSE)
+fig_nums(name = "Fig_S3.6", caption = "Copepod abundance with modeled temperature dependence", display = FALSE)
 ```
 
 #### Section S3.1: Zooplankton Abundance data over whole experiment
@@ -235,17 +234,16 @@ hist(data.N$Dt, main = "Copepods / 10L")
 #hist(data.N$Daphnia.Copepod.Ratio)
 ```
 
-
 ```{r log Daphnia density, echo = FALSE}
-m1D <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
-qqnorm(resid(m1D))
+D1 <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
+qqnorm(resid(D1))
 # proceed with alternate fixed effects models
-m1Da <- lme(log(abundance.Daphnia+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
-m1Db <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
-m1Dc <- lme(log(abundance.Daphnia+1) ~ 1, random = ~ 1|Tank, data = data.N)
-m1Dd <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)) + trophic.level, random = ~ 1|Tank, data = data.N)
+D1a <- lme(log(abundance.Daphnia+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
+D1b <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
+D1c <- lme(log(abundance.Daphnia+1) ~ 1, random = ~ 1|Tank, data = data.N)
+D1d <- lme(log(abundance.Daphnia+1) ~ 1 + I(invTT - mean(invTT)) + trophic.level, random = ~ 1|Tank, data = data.N)
 
-resD <- model.sel(m1D, m1Da, m1Db, m1Dc, m1Dd)
+resD <- model.sel(D1, D1a, D1b, D1c, D1d)
 ```
 
 `r table_nums("Table_S3.2")`
@@ -256,7 +254,7 @@ kable(resD, digits=2, col.names = c('Int','T~wj~','Z~j~','T~wj~*Z~j~','df', 'log
 
 `r table_nums("Table_S3.3")`
 ```{r Table S3.3: Daphnia coefs and confints}
-#kable(D.est, digits=2)
+kable(D.est, digits=2)
 ```
 
 
@@ -295,11 +293,10 @@ Fig4B <- D.plot2 +
 #ggsave("Fig4a.png", width = 4, height = 4)
 ```
 
-
+`r fig_nums("Fig_S3.5")`
 
 ```{r Fig_S3.5: Daphnia abundance plot, fig.width=4,fig.height=4}
-#`r fig_nums("Fig_S3.5")`
-#D.plot3
+D.plot3
 ```
 
 
@@ -335,7 +332,7 @@ kable(resC, digits=2, col.names = c('Int','T~wj~','Z~j~','T~wj~*Z~j~','df', 'log
 
 `r table_nums("Table_S3.5")`
 ```{r Table_S3.5}
-#kable(C.est, digits = 2)
+kable(C.est, digits = 2)
 ```
 
 
