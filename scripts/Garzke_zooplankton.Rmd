@@ -15,8 +15,9 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 ### load libraries
 library(MuMIn)
-library(lme4)
+#library(lme4)
 #library(plyr)
+library(nlme)
 library(tidyverse) 
 library(broom)
 library(reshape2)
@@ -51,7 +52,7 @@ overdisp_fun <- function(model) {
 
 ```{r captions}
 table_nums <- captioner::captioner(prefix = "Table S3.") #sets prefix for all tables
-table_nums(name = "Table_1", caption = "Model selection results for zooplankton abundance, with 1|Tank as a random effect. Model terms are: intercept (Int), Temperature - weekly average (Tw), trophic treatment (TL), statistical estimates", display = FALSE)
+table_nums(name = "Table_1", caption = "Model selection results for zooplankton abundance, with 1|Tank as a random effect. Model terms are: intercept (Int), Temperature - weekly average (Tw), trophic treatment (TL), Temperature*trophic treatment, statistical estimates", display = FALSE)
 table_nums(name = "Table_S3.2", caption = "Daphnia abundance model selection results for Poisson regression. Model terms are: intercept (Int), trophic treatment (TL), Temperature - weekly average (Tw), and statistical estimates", display = FALSE)
 table_nums(name = "Table_S3.3", caption = "Daphnia abundance model coefficients", display = FALSE)
 table_nums(name = "Table_S3.4", caption = "Copepod abundance model selection results for Poisson regression. Model terms are: intercept (Int), trophic treatment (TL), Temperature - weekly average (Tw), temperature - expt average (Tt), interaction terms and statistical estimates", display = FALSE)
@@ -64,12 +65,11 @@ table_nums(name = "Table_S3.9", caption = "Zooplankton size model estimates, fro
 fig_nums <- captioner::captioner(prefix = "Figure S3.")
 fig_nums(name = "Fig_S3.1", caption = "Abundance of zooplankton (Number / 10L) over all tanks and weeks.", display = FALSE)
 fig_nums(name = "Fig_S3.2", caption = "Residual plot for linear model of abundance with normally distributed errors", display = FALSE)
-fig_nums(name = "Fig_S3.3", caption = "Total Zooplankton abundance and modeled temperature dependence from negative binomial regression", display = FALSE)
-fig_nums(name = "Fig_S3.4", caption = "Abundance of Daphnia and Copepods (Number / 10L) over all tanks and weeks.", display = FALSE)
-fig_nums(name = "Fig_S3.5", caption = "Daphnia abundance with modeled temperature dependence from poisson regression; estimates and confidence intervals given in Table S3.3", display = FALSE)
-fig_nums(name = "Fig_S3.6", caption = "Copepod abundance with modeled temperature dependence from poisson regression", display = FALSE)
-fig_nums(name = "Fig_S3.7", caption = "Zooplankton body size (length) over all tanks and weeks.", display = FALSE)
-fig_nums(name = "Fig_S3.8", caption = "Zooplankton body size (length) and modeled effects of predation", display = FALSE)
+fig_nums(name = "Fig_S3.3", caption = "Residual plot for linear model of abundance with log normally distributed errors", display = FALSE)
+fig_nums(name = "Fig_S3.4", caption = "Total Zooplankton abundance and modeled temperature dependence from negative binomial regression", display = FALSE)
+fig_nums(name = "Fig_S3.5", caption = "Abundance of Daphnia and Copepods (Number / 10L) over all tanks and weeks.", display = FALSE)
+fig_nums(name = "Fig_S3.6", caption = "Daphnia abundance with modeled temperature dependence; estimates and confidence intervals given in Table S3.3", display = FALSE)
+fig_nums(name = "Fig_S3.7", caption = "Copepod abundance with modeled temperature dependence", display = FALSE)
 ```
 
 #### Section S3.1: Zooplankton Abundance data over whole experiment
@@ -97,10 +97,10 @@ hist(log(data.N$Nt), main = " ")
 
 ```{r Testing ZP model options, echo = FALSE}
 # first try: poisson regression
-m1 <- glm(Nt ~ trophic.level + invTT, family="poisson", data=data.N)
+#m1 <- glm(Nt ~ trophic.level + invTT, family="poisson", data=data.N)
 
 ## second try: lm random effects models with normally distributed errors
-m2 <- lmer(Nt ~ invTT + trophic.level + (1|Tank), data = data.N)
+#m2 <- lmer(Nt ~ invTT + trophic.level + (1|Tank), data = data.N)
 #summary(m2)
 #shapiro.test(resid(m2))
 ```
@@ -110,15 +110,20 @@ m2 <- lmer(Nt ~ invTT + trophic.level + (1|Tank), data = data.N)
 `r fig_nums("Fig_S3.2")`
 
 ```{r resid_plot_lm, echo=FALSE, fig.width=3,fig.height=3}
-qqnorm(resid(m1))
-qqline(resid(m1)) ## ok, shapiro test + this plot show that the linear model is not right.
+#qqnorm(resid(m1))
+#qqline(resid(m1)) ## ok, shapiro test + this plot show that the linear model is not right.
 ```
 
-#april 2019 b
-```{r log density, echo = FALSE}
-library(nlme)
+`r fig_nums("Fig_S3.2")`
+
+```{r log density, echo = FALSE, fig.width=3,fig.height=3}
 m1 <- lme(log(Nt+1) ~ 1 + I(invTT - mean(invTT))*trophic.level, random = ~ 1|Tank, data = data.N)
 qqnorm(resid(m1))
+qqline(resid(m1))
+```
+
+
+```{r model comparison log density}
 # proceed with alternate fixed effects models
 m1a <- lme(log(Nt+1) ~ 1 + trophic.level, random = ~ 1|Tank, data = data.N)
 m1b <- lme(log(Nt+1) ~ 1 + I(invTT - mean(invTT)), random = ~ 1|Tank, data = data.N)
@@ -131,7 +136,7 @@ res <- model.sel(m1, m1a, m1b, m1c, m1d)
 
 `r table_nums("Table_1")`
 ```{r Table_S1}
-kable(res, digits=2, col.names = c('Int','T~wj~','Z~j~','','df', 'logLik', 'AICc', 'd', 'w'))
+kable(res, digits=2, col.names = c('Int','T~wj~','Z~j~','T~wj~*Z~j~','df', 'logLik', 'AICc', 'd', 'w'))
 ```
 
 ```{r summarize best model}
@@ -210,7 +215,7 @@ N.plot3 <- N.plot2 +
 ggsave("Fig4.png", width = 4, height = 4)
 ```
 
-`r fig_nums("Fig_S3.3")`
+`r fig_nums("Fig_S3.4")`
 
 ```{r N_plot, fig.width=4,fig.height=4}
 N.plot3
