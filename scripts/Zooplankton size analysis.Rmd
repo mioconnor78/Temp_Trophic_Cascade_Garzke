@@ -1,3 +1,52 @@
+---
+title: "Temperature dependence of biomass and ecosystem function depend on species interactions. Supplementary File 3: Zooplankton size analysis."
+
+output:
+  pdf_document: default
+  html_document: default
+
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r load libraries, echo=FALSE}
+
+### load libraries
+library(MuMIn)
+library(lme4)
+#library(plyr)
+#library(nlme)
+library(tidyverse) 
+library(broom)
+library(reshape2)
+library(captioner)
+library(knitr)
+library(gridExtra)
+library(tinytex)
+library(cowplot)
+```
+
+```{r load data}
+data <- read.csv("../data/GarzkeAllwks.csv")
+k <- 8.617342*10^-5  # eV/K
+xlab <- expression(paste('Temperature (',~degree,'C)',sep=''))
+#labels <- c(P = "Algae", PZ = "Algae + Grazers", PZN = "Algae + Grazers + Predators")
+```
+
+
+```{r captions}
+table_nums <- captioner::captioner(prefix = "Table S3.") #sets prefix for all tables
+table_nums(name = "Table_S3.6", caption = "Zooplankton body size model selection results", display = FALSE)
+table_nums(name = "Table_S3.7", caption = "Zooplankton body size model selection results", display = FALSE)
+table_nums(name = "Table_S3.8", caption = "Zooplankton body size model selection results. Model terms are: intercept (Int), Temperature - weekly average (Tw), Taxon (Tx), trophic treatment (TL), and statistical estimates", display = FALSE)
+table_nums(name = "Table_S3.9", caption = "Zooplankton size model estimates, from table S3.8", display = FALSE)
+
+fig_nums <- captioner::captioner(prefix = "Figure S2.")
+fig_nums(name = "Fig_S3.1", caption = "Zooplankton sizes - all taxa", display = FALSE)
+```
+
 ### Section S3.4: Zooplankton size analysis
 ```{r Size analysis}
 sizes <- read.csv("../data/GarzkeSizes.csv")
@@ -20,7 +69,7 @@ data.S <- as_tibble(sizes) %>%
 #dplyr::select(., Tank, trophic.level, week, invTT, average.temp, abundance.Daphnia, abundance.copepods, Daphnia.Copepod.Ratio, total.zoo.abundance.liter) %>%
 ```
 
-`r fig_nums("Fig_S3.7")`
+`r fig_nums("Fig_S3.1")`
 
 ```{r Fig_S3.7 Zooplankton size data, fig.width = 3, fig.height = 3}  
 hist(data.S$size)

@@ -1,5 +1,5 @@
 ---
-title: "Temperature dependence of biomass and ecosystem function depend on species interactions. Supplementary File 3: Zooplankton figures and tables."
+title: "Temperature dependence of biomass and ecosystem function depend on species interactions. Supplementary File 2: Zooplankton density figures and tables."
 
 output:
   pdf_document: default
@@ -51,16 +51,13 @@ overdisp_fun <- function(model) {
 ```
 
 ```{r captions}
-table_nums <- captioner::captioner(prefix = "Table S3.") #sets prefix for all tables
+table_nums <- captioner::captioner(prefix = "Table S2.") #sets prefix for all tables
 table_nums(name = "Table_1", caption = "Model selection results for zooplankton abundance, with 1|Tank as a random effect. Model terms are: intercept (Int), Temperature - weekly average (Tw), trophic treatment (TL), Temperature*trophic treatment, statistical estimates", display = FALSE)
 table_nums(name = "Table_S3.2", caption = "Daphnia abundance model selection results for Poisson regression. Model terms are: intercept (Int), trophic treatment (TL), Temperature - weekly average (Tw), and statistical estimates", display = FALSE)
 table_nums(name = "Table_S3.3", caption = "Daphnia abundance model coefficients", display = FALSE)
 table_nums(name = "Table_S3.4", caption = "Copepod abundance model selection results for Poisson regression. Model terms are: intercept (Int), trophic treatment (TL), Temperature - weekly average (Tw), temperature - expt average (Tt), interaction terms and statistical estimates", display = FALSE)
 table_nums(name = "Table_S3.5", caption = "Copepod abundance model coefficients", display = FALSE)
-table_nums(name = "Table_S3.6", caption = "Zooplankton body size model selection results", display = FALSE)
-table_nums(name = "Table_S3.7", caption = "Zooplankton body size model selection results", display = FALSE)
-table_nums(name = "Table_S3.8", caption = "Zooplankton body size model selection results. Model terms are: intercept (Int), Temperature - weekly average (Tw), Taxon (Tx), trophic treatment (TL), and statistical estimates", display = FALSE)
-table_nums(name = "Table_S3.9", caption = "Zooplankton size model estimates, from table S3.8", display = FALSE)
+
 
 fig_nums <- captioner::captioner(prefix = "Figure S3.")
 fig_nums(name = "Fig_S3.1", caption = "Abundance of zooplankton (Number / 10L) over all tanks and weeks.", display = FALSE)
