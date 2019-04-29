@@ -168,6 +168,7 @@ N.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(Nt+1), xmin = -40, xmax
         panel.grid.major = element_blank(),  
         legend.position = c(.9,.7),
         #legend.justification = c(.5,0),
+         axis.text = element_text(size = 10),
         strip.text.y = element_blank(),
         strip.background = element_rect(colour="white", fill="white")) +
   scale_alpha("Week") +
@@ -258,8 +259,8 @@ kable(D.est, digits=2)
 
 ```{r Daphnia predicted values}
 ### use model coefficients to estimate lines for later plotting
-D.PZ <- function(x) { (fixef(m1Da)[1]) } # for trophic level 3
-D.PZN <- function(x) { (fixef(m1Da)[1] + fixef(m1Da)[2]) } # for trophic level 3
+D.PZ <- function(x) { (fixef(D1a)[1]) } # for trophic level 3
+D.PZN <- function(x) { (fixef(D1a)[1] + fixef(D1a)[2]) } # for trophic level 3
 ```
 
 ```{r Fig 4B Daphnia plots, width = 4, height = 4}
@@ -272,6 +273,7 @@ D.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(abundance.Daphnia+1), x
         #legend.text = element_text(size = 6), 
         #legend.title = element_text(size = 7), 
         #legend.key = element_rect(fill = NA), 
+         axis.text = element_text(size = 10),
         strip.text.y = element_blank(),
         strip.background = element_rect(colour="white", fill="white")) +
   scale_alpha("Week") +
@@ -349,6 +351,7 @@ C.plot2 <- ggplot(data = data.N, aes(x = -invTT, y = log(Ct + 1), xmin = -40, xm
         #legend.text = element_text(size = 6), 
         #legend.title = element_text(size = 7), 
         #legend.key = element_rect(fill = NA), 
+        axis.text = element_text(size = 10),
         strip.text.y = element_blank(),
         strip.background = element_rect(colour="white", fill="white")) +
   scale_alpha("week") +
